@@ -43,6 +43,6 @@
       .icon-mine
         display: block
         padding: 12px
-        font-size: 20px
+        font-size: 20px  //图标字体的大小 20+12+12=44
         color: $color-theme
 </style>

@@ -2,7 +2,7 @@
   <div id="app">
      <m-header></m-header>
      <tab></tab>
-    <router-view></router-view>
+    <router-view class="routerView"></router-view>
   </div>
 </template>
 
@@ -22,4 +22,6 @@
 
    #app
      color:$color-theme
+     .routerView
+       color $color-text
 </style>

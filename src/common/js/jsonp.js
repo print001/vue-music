@@ -1,7 +1,6 @@
 import originJsonp from 'jsonp'
-
 export default function jsonp(url, data, option) {
-  url += (url.indexOf('?') < 0 ? '?' : '&') + param(data)
+  url += (url.indexOf('?') < 0 ? '?' : '') + param(data)
 
   return new Promise((resolve, reject) => {
     originJsonp(url, option, (err, data) => {
@@ -20,5 +19,5 @@ export function param(data) {
     let value = data[k] !== undefined ? data[k] : ''
     url += '&' + k + '=' + encodeURIComponent(value)
   }
-  return url ? url.substring(1) : ''
+  return url ? url.substring(1) : ''// substring(1)等同与slice() 表示去掉第一个字符（0的那个）
 }
