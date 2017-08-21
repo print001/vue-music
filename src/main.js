@@ -4,8 +4,12 @@ import App from './App'
 import router from './router'
 import fastclick from 'fastclick'
 import 'common/stylus/index'
+import lazyLoad from 'vue-lazyload'
 
 fastclick.attach(document.body) // 点击300ms的延迟
+Vue.use(lazyLoad, {
+  loading: require('common/image/default.png')
+})
 /* eslint-disable no-new */
 
 new Vue({

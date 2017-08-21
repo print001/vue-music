@@ -5,7 +5,7 @@
       </slot>
     </div>
     <div class="dots">
-      <span class="dot" :class="{active: currentPageIndex === index }" v-for="(item, index) in dots"></span>
+      <span class="dot" :class="{active: currentPageIndex === index }" v-for=" (item,index) in dots"></span>
     </div>
   </div>
 </template>
@@ -41,8 +41,10 @@
         this._setSliderWidth()
         this._initDots()
         this._initSlider()
+        if (this.autoPlay) {
+          this._play()
+        }
       }, 20)
-
       window.addEventListener('resize', () => {
         if (!this.slider) {
           return
@@ -92,10 +94,24 @@
             pageIndex -= 1
           }
           this.currentPageIndex = pageIndex
+          if (this.autoPlay) {
+            clearTimeout(this.timer)
+            this._play()
+          }
         })
       },
       _initDots() {
         this.dots = new Array(this.children.length)
+      },
+      _play() {
+        let pageIndex = this.currentPageIndex + 1 // 加一的原因是跳到下一张图片。
+        // console.log(pageIndex)
+        if (this.loop) {
+          pageIndex += 1
+        }
+        this.timer = setTimeout(() => {
+          this.slider.goToPage(pageIndex, 0, 400)
+        }, this.interval)
       }
     }
   }
@@ -106,8 +122,8 @@
 
   .slider
     min-height: 1px
+    position: relative
     .slider-group
-      position: relative
       overflow: hidden
       white-space: nowrap
       .slider-item
