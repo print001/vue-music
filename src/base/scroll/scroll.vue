@@ -22,6 +22,10 @@
       data: {
         type: Array,
         default: null
+      },
+      listenScroll: {
+        type: Boolean,
+        default: false
       }
     },
     mounted() {
@@ -38,6 +42,17 @@
           probeType: this.probeType,
           click: this.click
         })
+        if (this.listenScroll) {
+          this.scroll.on('scroll', (pos) => {
+            this.$emit('scroll', pos) // 触发当前实例上的事件。附加参数都会传给监听器回调。
+          })
+        }
+      },
+      scrollTo() {
+        return this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments)
+      },
+      scrollToElement() {
+        return this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
       },
       disable() {
         this.scroll && this.scroll.disable()

@@ -5,6 +5,7 @@ import router from './router'
 import fastclick from 'fastclick'
 import 'common/stylus/index'
 import lazyLoad from 'vue-lazyload'
+import store from './store'
 
 fastclick.attach(document.body) // 点击300ms的延迟
 Vue.use(lazyLoad, {
@@ -14,6 +15,7 @@ Vue.use(lazyLoad, {
 
 new Vue({
   el: '#app',
+  store,
   router,
   render: h => h(App) // create element 方法
 })

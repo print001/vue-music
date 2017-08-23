@@ -4,6 +4,7 @@ import Recommend from 'components/recommend/recommend'
 import Singer from 'components/singer/singer'
 import Rank from 'components/rank/rank'
 import Search from 'components/search/search'
+import SingerDetail from 'components/singer-detail/singer-detail'
 // import Tab from 'components/tab/tab'
 
 Vue.use(Router) // 安装插件
@@ -20,7 +21,11 @@ export default new Router({
     },
     {
       path: '/singer',
-      component: Singer
+      component: Singer,
+      children: [{
+        path: ':id',
+        component: SingerDetail
+      }] // 子组件
     },
     {
       path: '/rank',
