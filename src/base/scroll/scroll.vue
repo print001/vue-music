@@ -11,7 +11,7 @@
 
   export default {
     props: {
-      probeType: {
+      probeType: { //
         type: Number,
         default: 1
       },
@@ -23,7 +23,7 @@
         type: Array,
         default: null
       },
-      listenScroll: {
+      listenScroll: {  //
         type: Boolean,
         default: false
       }

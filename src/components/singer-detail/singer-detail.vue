@@ -39,11 +39,10 @@
         if (!this.singer.id) {
           this.$router.push('/singer')
         }
-        getSingerDetail(this.singer.id).then((res) => { //
+        // console.log(this.$router)
+        getSingerDetail(this.singer.id).then((res) => { // ..
           if (res.code === ERR_OK) {
-            console.log('in')
             this.songs = this._normalizeSongs(res.data.list)
-            console.log(this.songs)
           }
         })
       },
