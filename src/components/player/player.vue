@@ -1,21 +1,308 @@
 <template>
-  <div class="player" >
-    <div class="normal-player" v-show="fullScreen">
-      播放器
-    </div>
-    <div class="mini-player" v-show="!fullScreen"></div>
+  <div class="player" v-show="playlist.length>20">
+    <transition name="normal"
+                @enter="enter"
+                @after-enter="afterEnter"
+                @leave="leave"
+                @after-leave="afterLeave"
+    >
+      <div class="normal-player" v-show="fullScreen">
+        <div class="background">
+          <img width="100%" height="100%" :src="currentSong.image">
+        </div>
+        <div class="top">
+          <div class="back" @click="back">
+            <i class="icon-back"></i>
+          </div>
+          <h1 class="title" v-html="currentSong.name"></h1>
+          <h2 class="subtitle" v-html="currentSong.singer"></h2>
+        </div>
+        <div class="middle">
+          <div class="middle-l" ref="middleL">
+            <div class="cd-wrapper" ref="cdWrapper">
+              <div class="cd" :class="cdCls">
+                <img class="image" :src="currentSong.image">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom">
+          <div class="progress-wrapper">
+            <span class="time time-l">{{format(currentTime)}}</span>
+            <div class="progress-bar-wrapper">
+              <progress-bar @percentChange="onProgressBarChange" :percent="percent"></progress-bar>
+            </div>
+            <span class="time time-r">{{format(currentSong.duration)}}</span>
+          </div>
+          <div class="operators">
+            <div class="icon i-left" @click="changeMode">
+              <i :class="iconMode"></i>
+            </div>
+            <div @click="prev" class="icon i-left" :class="disableCls">
+              <i class="icon-prev"></i>
+            </div>
+            <div class="icon i-center" :class="disableCls">
+              <i @click="togglePlaying" :class="playIcon"></i>
+            </div>
+            <div @click="next" class="icon i-right" :class="disableCls">
+              <i class="icon-next"></i>
+            </div>
+            <div class="icon i-right">
+              <i class="icon icon-not-favorite"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+    <transition name="mini">
+      <div class="mini-player" v-show="!fullScreen" @click="open">
+        <div class="icon">
+          <img width="40" height="40" :src="currentSong.image">
+        </div>
+        <div class="text">
+          <h2 class="name" v-html="currentSong.name"></h2>
+          <p class="desc" v-html="currentSong.singer"></p>
+        </div>
+        <div @click.stop="togglePlaying" class="control">
+          <progress-circle :radius="radius" :percent="percent">
+            <i class="icon-mini" :class="miniIcon"></i>
+          </progress-circle>
+        </div>
+        <div class="control">
+          <i class="icon-playlist"></i>
+        </div>
+      </div>
+    </transition>
+    <audio :src="currentSong.url" ref="audio" @canplay="ready" @error="err"
+           @timeupdate="updateTime" @ended="end"></audio>
   </div>
 </template>
 
-<script type="text/ecmascript-6">
-  import {mapGetters} from 'vuex'
+<script scoped type="text/ecmascript-6">
+  import {mapGetters, mapMutations} from 'vuex'
+  import animations from 'create-keyframe-animation'
+  import {prefixStyle} from 'common/js/dom'
+  import progressBar from 'base/progress-bar/progress-bar'
+  import progressCircle from 'base/progress-circle/progress-circle'
+  import {playMode} from 'common/js/config'
+  import {shuffle} from 'common/js/util'
+
+  const transform = prefixStyle('transform')
 
   export default {
+    components: {
+      progressBar,
+      progressCircle
+    },
+    data() {
+      return {
+        songReady: false,
+        currentTime: 0,
+        radius: 32
+      }
+    },
     computed: {
       ...mapGetters([ // 使用对象展开运算符将 getters 混入 computed 对象
         'fullScreen',
-        'playlist'
-      ])
+        'playlist',
+        'currentSong',
+        'playing',
+        'currentIndex',
+        'mode',
+        'sequenceList'
+      ]),
+      cdCls() {
+        return this.playing ? 'play' : 'play pause'
+      },
+      playIcon() {
+        return this.playing ? 'icon-pause' : 'icon-play'
+      },
+      miniIcon() {
+        return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
+      },
+      iconMode() {
+        return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
+      },
+      disableCls() {
+        return this.songReady ? ' ' : 'disable'
+      },
+      percent() {
+        return this.currentTime / this.currentSong.duration
+      }
+    },
+    watch: {
+      currentSong(newSong, oldSong) {
+        if (newSong === oldSong) {
+          return
+        }
+        this.$nextTick(() => { // 加了一个延时为什么 DOM 更新后执行
+          this.$refs.audio.play()
+          this.currentSong.getLyric()
+        })
+      },
+      playing(newPlaying) {
+        const audio = this.$refs.audio
+        newPlaying ? audio.play() : audio.pause()
+      }
+    },
+    mounted() {
+    },
+    methods: {
+      prev() {
+        if (!this.songReady) { // songReady 是为了防止点击过快导致报错 所以在audio加载完成后才可以操作
+          return
+        }
+        let index = this.currentIndex - 1
+        if (index === -1) {
+          index = this.playlist.length - 1
+        }
+        this.setCurrentIndex(index)
+        if (this.playing === false) {
+          this.togglePlaying()
+        }
+        this.songReady = false
+      },
+      next() {
+        if (!this.songReady) {
+          return
+        }
+        let index = this.currentIndex + 1
+        if (index === this.playlist.length) {
+          index = 0
+        }
+        this.setCurrentIndex(index)
+        if (this.playing === false) {
+          this.togglePlaying()
+        }
+        this.songReady = false
+      },
+      togglePlaying() {
+        this.setPlayingState(!this.playing)
+      },
+      ready() { // 加载完成后才可以操作按键
+        this.songReady = true
+      },
+      err() { // 在加载失败时 设置为true 保证了在此时仍然可以使用切换按键
+        this.songReady = true
+      },
+      updateTime(e) { // 跟新播放时间
+        this.currentTime = e.target.currentTime
+      },
+      end() {
+        if (this.mode === playMode.loop) {
+          this.loop()
+        } else {
+          this.next()
+        }
+      },
+      loop() {
+        this.$refs.audio.currentTime = 0
+        this.$refs.audio.play()
+        this.setPlayingState(true)
+      },
+      back() {
+        this.setFullScreen(false)
+      },
+      open() {
+        this.setFullScreen(true)
+      },
+      enter(el, done) { // normal play 中的大唱片动画
+        const {x, y, scale} = this._getPosAndScale()
+        let animation = {
+          0: {
+            transform: `translate3d(${x}px,${y}px,0) scale(${scale})` // x<0 y>0 //x 和y都是偏移量，表示在原位置上偏移多少都是
+          },
+          60: {
+            transform: `translate3d(0,0,0) scale(1.1)`
+          },
+          100: {
+            transform: `translate3d(0,0,0) scale(1)`
+          }
+        }
+        animations.registerAnimation({
+          name: 'move',
+          animation,
+          presets: {
+            duration: 400,
+            easing: 'linear'
+          }
+        })
+        animations.runAnimation(this.$refs.cdWrapper, 'move', done)
+      },
+      afterEnter(el, done) {
+        animations.unregisterAnimation('move')
+        this.$refs.cdWrapper.style.animation = ''
+      },
+      leave() {
+        this.$refs.cdWrapper.style.transition = 'all 0.4s'
+        const {x, y, scale} = this._getPosAndScale()
+        this.$refs.cdWrapper.style[transform] = `translate3d(${x}px,${y}px,0) scale(${scale})`
+      },
+      afterLeave() {
+        this.$refs.cdWrapper.style.transition = ''
+        this.$refs.cdWrapper.style[transform] = ''
+      },
+      changeMode() {
+        const mode = (this.mode + 1) % 3
+        this.setPlayMode(mode)
+        let list = null
+        if (mode === playMode.random) {
+          list = shuffle(this.sequenceList)
+        } else {
+          list = this.sequenceList
+        }
+        this.resetCurrentIndex(list)
+        this.setPlayList(list)
+      },
+      resetCurrentIndex(list) {
+        let index = list.findIndex((item) => {
+          return item.id === this.currentSong.id
+        })
+        this.setCurrentIndex(index)  // list改变的时候，确保当前播放的歌曲不会切换
+      },
+      _getPosAndScale() { // 计算 偏移量和缩放量
+        const targetWidth = 40 // 目标的宽度小圆的宽度
+        const paddingLeft = 40 // 小图中心坐标距离左边的宽度
+        const paddingBottom = 30 //
+        const paddingTop = 80 // 大唱片容器到顶部的距离
+        const width = window.innerWidth * 0.8
+        const scale = targetWidth / width // <1
+        const x = (-window.innerWidth / 2 - paddingLeft) // 从大到小动画x偏移距离
+        const y = window.innerHeight - paddingTop - width / 2 - paddingBottom // y偏移
+        return {
+          x,
+          y,
+          scale
+        }
+      },
+      format(interval) {
+        interval = interval | 0 // |0 表示向下取整
+        const minute = interval / 60 | 0
+        let second = this._pad(interval % 60)
+        return `${minute}:${second}`
+      },
+      _pad(num, n = 2) {
+        let len = num.toString().length
+        while (len < n) {
+          num = '0' + num
+          len++
+        }
+        return num
+      },
+      onProgressBarChange(percent) {
+        const currentTime = percent * this.currentSong.duration
+        this.$refs.audio.currentTime = currentTime
+        if (!this.playing) {
+          this.togglePlaying()
+        }
+      },
+      ...mapMutations({
+        setFullScreen: 'SET_FULL_SCREEN',
+        setPlayingState: 'SET_PLAYING_STATE',
+        setCurrentIndex: 'SET_CURRENT_INDEX',
+        setPlayMode: 'SET_PLAY_MODE',
+        setPlayList: 'SET_PLAY_LIST'
+      })
     }
   }
 </script>
@@ -192,7 +479,7 @@
             text-align: left
           .icon-favorite
             color: $color-sub-theme
-      &.normal-enter-active, &.normal-leave-active
+      &.normal-enter-active, &.normal-leave-active // transition 属性
         transition: all 0.4s
         .top, .bottom
           transition: all 0.4s cubic-bezier(0.86, 0.18, 0.82, 1.32)

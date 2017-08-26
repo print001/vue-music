@@ -1,7 +1,7 @@
 // 用来整合真个store 方法
 import Vue from 'vue'
 import Vuex from 'vuex'
-import * as actions from './action'
+import * as actions from './actions'
 import * as getters from './getters'
 import state from './state'
 import mutations from './mutations'
