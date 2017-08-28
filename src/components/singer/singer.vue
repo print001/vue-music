@@ -11,10 +11,12 @@
   import Singer from 'common/js/singer.js'
   import ListView from 'base/listview/listview'
   import {mapMutations} from 'vuex'
+  import {playListMixin} from 'common/js/mixin'
 
   const HOT_NAME = '热门'
   const HOT_SINGER_LEN = 10
   export default {
+    mixins: [playListMixin],
     data() {
       return {
         singers: []
@@ -27,6 +29,12 @@
       'list-view': ListView
     },
     methods: {
+      handlePlaylist(playlist) {
+        const bottom = playlist.length > 0 ? '60px' : ''
+        console.log(bottom)
+        this.$refs.singer.style.bottom = bottom
+        this.$refs.list.refresh()
+      },
       selectSinger(singer) { // 路由到singer-detail
         this.$router.push({
           path: `/singer/${singer.id}`
@@ -89,7 +97,6 @@
     }
   }
 </script>
-
 <style scoped lang="stylus" rel="stylesheet/stylus">
   .singer
     position: fixed

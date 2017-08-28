@@ -16,7 +16,7 @@
     <div class="bg-layer" ref="layer"></div>
     <scroll @scroll="scroll" :probeType="probeType" :listen-scroll="listenScroll" :data="songs" class="list" ref="list">
       <div class="song-list-wrapper">
-        <song-list @select="selectItem" :songs="songs"></song-list>
+        <song-list @select="selectItem" :songs="songs" :rank="rank"></song-list>
       </div>
       <div class="loading-container" v-show="!songs.length">
         <loading></loading>
@@ -31,12 +31,14 @@
   import loading from 'base/loading/loading'
   import {prefixStyle} from 'common/js/dom'
   import {mapActions} from 'vuex'
+  import {playListMixin} from 'common/js/mixin'
 
   const RESERVED_HEIGHT = 40
 
   const transform = prefixStyle('transform')
   const backdrop = prefixStyle('backdrop-filter')
   export default {
+    mixins: [playListMixin],
     props: {
       bgImage: {
         type: String,
@@ -109,6 +111,11 @@
       }
     },
     methods: {
+      handlePlaylist(playlist) {
+        const bottom = playlist.length > 0 ? '60px' : ''
+        this.$refs.list.$el.style.bottom = bottom
+        this.$refs.list.refresh()
+      },
       scroll(pos) { // scroll事件触发此方法，获得Y轴的坐标
         this.scrollY = pos.y
       },

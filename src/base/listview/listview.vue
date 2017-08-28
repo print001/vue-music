@@ -140,6 +140,9 @@
       scroll(pos) { // 绑定scroll事件 应该是BSCROLL中定义的事件
         this.scrollY = pos.y
       },
+      refresh() {
+        this.$refs.listview.refresh()
+      },
       _calculateHeight() { // 计算每个字母单元的高度存入listHeight
         const list = this.$refs.listGroup
         let height = 0
@@ -164,7 +167,7 @@
     overflow: hidden
     background: $color-background
     .list-group
-      padding-bottom: 0px //这里有问题
+      padding-bottom: 30px //这里有问题
       .list-group-title
         height: 30px
         line-height: 30px

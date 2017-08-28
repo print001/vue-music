@@ -17,16 +17,37 @@
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
-        <div class="middle">
+        <div class="middle"
+             @touchstart.prevent="middleTouchStart"
+             @touchmove.prevent="middleTouchMove"
+             @touchend="middleTouchEnd"
+        >
           <div class="middle-l" ref="middleL">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
+            <div class="playing-lyric-wrapper">
+              <div class="playing-lyric">{{playingLyric}}</div>
+            </div>
           </div>
+          <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric">
+                <p ref="lyricLine"
+                   class="text"
+                   :class="{current:currentLineNum===index}"
+                   v-for="(line,index) in currentLyric.lines">{{line.txt}}</p>
+              </div>
+            </div>
+          </scroll>
         </div>
         <div class="bottom">
+          <div class="dot-wrapper">
+            <span class="dot" :class="{'active':currentShow==='cd'}"></span>
+            <span class="dot" :class="{'active':currentShow==='lyric'}"></span>
+          </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
             <div class="progress-bar-wrapper">
@@ -86,20 +107,31 @@
   import progressCircle from 'base/progress-circle/progress-circle'
   import {playMode} from 'common/js/config'
   import {shuffle} from 'common/js/util'
+  import Lyric from 'lyric-parser'
+  import Scroll from 'base/scroll/scroll'
 
   const transform = prefixStyle('transform')
-
+  const transitionDuration = prefixStyle('transitionDuration')
   export default {
     components: {
       progressBar,
-      progressCircle
+      progressCircle,
+      Scroll
     },
     data() {
       return {
         songReady: false,
         currentTime: 0,
-        radius: 32
+        radius: 32,
+        currentLyric: null,
+        currentLineNum: 0,
+        currentShow: 'cd',
+        playingLyric: ''
+
       }
+    },
+    created() { // 并不需要添加getter 和setter 所以在created中定义
+      this.touch = {}
     },
     computed: {
       ...mapGetters([ // 使用对象展开运算符将 getters 混入 computed 对象
@@ -135,10 +167,13 @@
         if (newSong === oldSong) {
           return
         }
-        this.$nextTick(() => { // 加了一个延时为什么 DOM 更新后执行
+        if (this.currentLyric) {
+          this.currentLyric.stop()
+        }
+        setTimeout(() => { // 加了一个延时为什么
           this.$refs.audio.play()
-          this.currentSong.getLyric()
-        })
+          this.getLyric()
+        }, 1000)
       },
       playing(newPlaying) {
         const audio = this.$refs.audio
@@ -152,32 +187,43 @@
         if (!this.songReady) { // songReady 是为了防止点击过快导致报错 所以在audio加载完成后才可以操作
           return
         }
-        let index = this.currentIndex - 1
-        if (index === -1) {
-          index = this.playlist.length - 1
+        if (this.currentSong.length === 1) {
+          this.loop()
+        } else {
+          let index = this.currentIndex - 1
+          if (index === -1) {
+            index = this.playlist.length - 1
+          }
+          this.setCurrentIndex(index)
+          if (this.playing === false) {
+            this.togglePlaying()
+          }
+          this.songReady = false
         }
-        this.setCurrentIndex(index)
-        if (this.playing === false) {
-          this.togglePlaying()
-        }
-        this.songReady = false
       },
       next() {
         if (!this.songReady) {
           return
         }
-        let index = this.currentIndex + 1
-        if (index === this.playlist.length) {
-          index = 0
+        if (this.currentSong.length === 1) {
+          this.loop()
+        } else {
+          let index = this.currentIndex + 1
+          if (index === this.playlist.length) {
+            index = 0
+          }
+          this.setCurrentIndex(index) // 更新index 然后 currentSong 在计算属性下更新 然后动态绑定的audio src 刷新
+          if (this.playing === false) {
+            this.togglePlaying()
+          }
+          this.songReady = false
         }
-        this.setCurrentIndex(index)
-        if (this.playing === false) {
-          this.togglePlaying()
-        }
-        this.songReady = false
       },
       togglePlaying() {
         this.setPlayingState(!this.playing)
+        if (this.currentLyric) { // 歌词也要切换
+          this.currentLyric.togglePlay()
+        }
       },
       ready() { // 加载完成后才可以操作按键
         this.songReady = true
@@ -199,6 +245,9 @@
         this.$refs.audio.currentTime = 0
         this.$refs.audio.play()
         this.setPlayingState(true)
+        if (this.currentLyric) {
+          this.currentLyric.seek(0)
+        }
       },
       back() {
         this.setFullScreen(false)
@@ -281,6 +330,79 @@
         let second = this._pad(interval % 60)
         return `${minute}:${second}`
       },
+      getLyric() { // 解析lyric 使用插件lyric-parser
+        this.currentSong.getLyric().then((lyric) => {
+          this.currentLyric = new Lyric(lyric, this.handleLyric)
+          if (this.playing) {
+            this.currentLyric.play()
+          }
+          // console.log(this.currentLyric)
+        }).catch(() => {
+          this.currentLyric = null
+          this.playingLyric = ''
+          this.currentLineNum = 0
+        })
+      },
+      handleLyric({lineNum, txt}) { // 在歌词变化时触发 此函数
+        this.currentLineNum = lineNum
+        if (lineNum > 5) {  // 前5句歌词 不滑动
+          let lineEl = this.$refs.lyricLine[lineNum - 5]
+          this.$refs.lyricList.scrollToElement(lineEl, 1000)
+        } else {
+          this.$refs.lyricList.scrollTo(0, 0, 1000)
+        }
+        this.playingLyric = txt
+      },
+      middleTouchStart(e) { // 获得touch的x,y坐标
+        this.touch.initiated = true
+        const touch = e.touches[0]
+        this.touch.startX = touch.pageX
+        this.touch.startY = touch.pageY
+      },
+      middleTouchMove(e) {
+        if (!this.touch.initiated) {
+          return
+        }
+        const touch = e.touches[0]
+        const deltaX = touch.pageX - this.touch.startX // 屏幕滑动的距离 ！！！实时计算！！！！
+        const deltaY = touch.pageY - this.touch.startY
+        if (Math.abs(deltaX) < Math.abs(deltaY)) {
+          return
+        }
+        const left = this.currentShow === 'cd' ? 0 : -window.innerWidth // 表示当前的移动 window,innerWidth 表示窗口的宽度 不包含工具条于滚动条
+        const offsetWidth = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
+        this.touch.percent = Math.abs(offsetWidth / window.innerWidth)
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)`
+        this.$refs.lyricList.$el.style[transitionDuration] = '0ms' // 引号 单位
+        this.$refs.middleL.style.opacity = 1 - this.touch.percent
+      },
+      middleTouchEnd() {
+        let offsetWidth
+        let opacity
+        if (this.currentShow === 'cd') {
+          if (this.touch.percent > 0.1) {
+            offsetWidth = -window.innerWidth // 左滑一个屏幕宽度
+            this.currentShow = 'lyric'
+            opacity = 0
+          } else {
+            offsetWidth = 0
+            opacity = 1
+          }
+        } else {
+          if (this.touch.percent > 0.1) { // 表示视口显示歌词时 向右滑动
+            offsetWidth = 0
+            this.currentShow = 'cd'
+            opacity = 1
+          } else {
+            offsetWidth = -window.innerWidth
+            opacity = 0
+          }
+        }
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)`
+        this.$refs.lyricList.$el.style[transitionDuration] = '300ms'
+        this.$refs.middleL.style.opacity = opacity
+        this.$refs.middleL.style[transitionDuration] = '300ms'
+      },
       _pad(num, n = 2) {
         let len = num.toString().length
         while (len < n) {
@@ -289,11 +411,14 @@
         }
         return num
       },
-      onProgressBarChange(percent) {
+      onProgressBarChange(percent) { // 拖动进度条后 跟新时间
         const currentTime = percent * this.currentSong.duration
         this.$refs.audio.currentTime = currentTime
         if (!this.playing) {
           this.togglePlaying()
+        }
+        if (this.currentLyric) {
+          this.currentLyric.seek(currentTime * 1000)
         }
       },
       ...mapMutations({

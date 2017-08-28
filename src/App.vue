@@ -24,9 +24,4 @@
 
 <style lang="stylus" rel="stylesheet/stylus">
  @import "common/stylus/variable.styl"
-
-   #app
-     color:$color-theme
-     .routerView
-       color $color-text
 </style>
