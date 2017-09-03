@@ -83,12 +83,12 @@
     },
     watch: {
       scrollY(newY) { // 让layer 偏移，
-        let translateY = Math.max(this.minTranslateY, newY)
-        let zIndex = 0
+        let translateY = Math.max(this.minTranslateY, newY) // 判断滑动是否超出顶端back 和title如果超过则取minTranslateY
+        let zIndex = 0 // 控制黑背景的层
         let scale = 1
         let blur = 0
         const percent = Math.abs(newY / this.imageHeight)
-        if (newY > 0) {
+        if (newY > 0) { // 向下拉
           scale = 1 + percent
           zIndex = 10
         } else {
@@ -98,7 +98,7 @@
         this.$refs.filter.style[backdrop] = `blur(${blur}px)`
         if (newY < this.minTranslateY) {
           zIndex = 10 // 此时让bgImage在顶层防止scroll遮盖
-          this.$refs.bgImage.style.paddingTop = 0  // paddtop 和height控制在往上滑动时避免
+          this.$refs.bgImage.style.paddingTop = 0  // paddtop 和height控制bg-image大小 此时缩小
           this.$refs.bgImage.style.height = `${RESERVED_HEIGHT}px`
           this.$refs.playBtn.style.display = 'NONE'
         } else {

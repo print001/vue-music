@@ -74,7 +74,7 @@
           let height2 = listHeight[i + 1]
           if (-newY >= height1 && -newY < height2) {
             this.currentIndex = i
-            this.diff = height2 + newY
+            this.diff = height2 + newY // 和下一个list-group的距离
             return
           }
         }
@@ -121,7 +121,7 @@
       onShortcutTouchMove(e) { // 实现跟随滑动
         let firstTouch = e.touches[0]
         this.touch.y2 = firstTouch.pageY
-        let delta = (this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT | 0 // 移动了几个index
+        let delta = (this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT | 0 // 移动了几个index 向下取整
         let anchorIndex = parseInt(this.touch.anchorIndex) + delta // 基准
         this._scrollTo(anchorIndex)
       },

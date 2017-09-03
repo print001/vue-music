@@ -3,15 +3,13 @@
     <slot></slot>
   </div>
 </template>
-<style scoped lang="stylus" rel="stylesheet/stylus">
-</style>
 
 <script type="text/ecmascript-6">
   import BScroll from 'better-scroll'
 
   export default {
     props: {
-      probeType: { //
+      probeType: {
         type: Number,
         default: 1
       },
@@ -19,19 +17,31 @@
         type: Boolean,
         default: true
       },
+      listenScroll: {
+        type: Boolean,
+        default: false
+      },
       data: {
         type: Array,
         default: null
       },
-      listenScroll: {  //
+      pullup: {
         type: Boolean,
         default: false
+      },
+      beforeScroll: {
+        type: Boolean,
+        default: false
+      },
+      refreshDelay: { // 控制刷新的时间
+        type: Number,
+        default: 20
       }
     },
     mounted() {
       setTimeout(() => {
         this._initScroll()
-      }, 20)
+      }, this.refreshDelay)
     },
     methods: {
       _initScroll() {
@@ -42,17 +52,27 @@
           probeType: this.probeType,
           click: this.click
         })
-        if (this.listenScroll) {
+
+        if (this.listenScroll) { // 监听滚动事件
+          let me = this
           this.scroll.on('scroll', (pos) => {
-            this.$emit('scroll', pos) // 触发当前实例上的事件。附加参数都会传给监听器回调。
+            me.$emit('scroll', pos)
           })
         }
-      },
-      scrollTo() {
-        return this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments)
-      },
-      scrollToElement() {
-        return this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
+
+        if (this.pullup) { // 滚动到底部
+          this.scroll.on('scrollEnd', () => {
+            if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
+              this.$emit('scrollToEnd')
+            }
+          })
+        }
+
+        if (this.beforeScroll) {
+          this.scroll.on('beforeScrollStart', () => {
+            this.$emit('beforeScroll')
+          })
+        }
       },
       disable() {
         this.scroll && this.scroll.disable()
@@ -62,15 +82,25 @@
       },
       refresh() {
         this.scroll && this.scroll.refresh()
+      },
+      scrollTo() {
+        this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments)
+      },
+      scrollToElement() {
+        this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
       }
     },
-    watch: { // data数据变化时刷新
+    watch: {
       data() {
         setTimeout(() => {
           this.refresh()
-        }, 20)
+        }, this.refreshDelay)
       }
     }
   }
 </script>
+
+<style scoped lang="stylus" rel="stylesheet/stylus">
+
+</style>
 

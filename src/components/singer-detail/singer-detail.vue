@@ -42,7 +42,7 @@
         // console.log(this.$router)
         getSingerDetail(this.singer.id).then((res) => { // ..
           if (res.code === ERR_OK) {
-            this.songs = this._normalizeSongs(res.data.list)
+            this.songs = this._normalizeSongs(res.data.list) // 数组
           }
         })
       },

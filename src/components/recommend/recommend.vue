@@ -65,7 +65,7 @@
         this.$refs.recommend.$el.style.bottom = bottom
         this.$refs.scroll.refresh()
       },
-      selectItem(item) {
+      selectItem(item) {  // 点击进入歌单的歌曲列表
         this.$router.push({
           path: `/recommend/${item.dissid}`
         })

@@ -41,7 +41,7 @@
         })
         this.setSinger(singer) // singer传到mutation执行： state.singer = singer
       },
-      _getSingerList() {
+      _getSingerList() {  // 通过jsonp取得数据
         getSingerList().then((res) => {
           if (res.code === ERR_OK) {
             // console.log(res.data.list)
@@ -86,7 +86,7 @@
             hot.push(val)
           }
         }
-        ret.sort((a, b) => {
+        ret.sort((a, b) => { // 按字母顺序排序
           return a.title.charCodeAt(0) - b.title.charCodeAt(0)
         })
         return hot.concat(ret)

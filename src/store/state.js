@@ -1,5 +1,6 @@
 // 原始数据是什么，最底层的数据
 import {playMode} from 'common/js/config'
+import {loadSearch, loadPlay, loadFavorite} from 'common/js/cache'
 
 const state = {
   singer: {},
@@ -8,8 +9,12 @@ const state = {
   playList: [],
   sequenceList: [],
   mode: playMode.sequence,
-  currentIndex: -1, // 当前的播放歌曲的索引
+  currentIndex: -1,
   disc: {},
-  topList: {}
+  topList: {},
+  searchHistory: loadSearch(),
+  playHistory: loadPlay(),
+  favoriteList: loadFavorite()
 }
+
 export default state

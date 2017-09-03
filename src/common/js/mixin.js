@@ -37,7 +37,7 @@ export const playerMixin = {
       'playlist',
       'currentSong',
       'mode',
-      'favoriteList'
+      'favoriteList'  // 收藏列表
     ])
   },
   methods: {
@@ -59,7 +59,7 @@ export const playerMixin = {
       })
       this.setCurrentIndex(index)
     },
-    toggleFavorite(song) {
+    toggleFavorite(song) { // 收藏按钮
       if (this.isFavorite(song)) {
         this.deleteFavoriteList(song)
       } else {

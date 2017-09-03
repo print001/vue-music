@@ -9,7 +9,7 @@ export const fullScreen = state => state.fullScreen
 
 export const playlist = state => state.playList
 
-export const sequenceList = state => state.sequenceList
+export const sequenceList = state => state.sequenceList // 顺序播放列表
 
 export const mode = state => state.mode
 

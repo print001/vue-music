@@ -31,7 +31,7 @@ export default class Song {
   }
 }
 
-export function createSong(musicData) {
+export function createSong(musicData) { // 工厂函数模式
   return new Song({
     id: musicData.songid,
     mid: musicData.songmid,

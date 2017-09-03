@@ -13,7 +13,6 @@
     </div>
   </div>
 </template>
-
 <script type="text/ecmascript-6">
   import {prefixStyle} from 'common/js/dom'
 
@@ -33,15 +32,15 @@
     methods: {
       progressTouchStart(e) {
         this.touch.initiated = true
-        this.touch.startX = e.touches[0].pageX
-        this.touch.left = this.$refs.progress.clientWidth
+        this.touch.startX = e.touches[0].pageX // 点击的位置
+        this.touch.left = this.$refs.progress.clientWidth // 总的进度条长度
       },
       progressTouchMove(e) {
         if (!this.touch.initiated) {
           return
         }
         const deltaX = e.touches[0].pageX - this.touch.startX  // 计算touch移动的距离
-        const offsetWidth = Math.min(this.$refs.progressBar.clientWidth - progressBtnWidth, Math.max(0, this.touch.left + deltaX)) //
+        const offsetWidth = Math.min(this.$refs.progressBar.clientWidth - progressBtnWidth, Math.max(0, this.touch.left + deltaX)) // 偏移的距离
         this._offset(offsetWidth)
       },
       progressTouchEnd() { // 防止从外部touch到progress中触发
@@ -49,7 +48,7 @@
         this._triggerPercent()
       },
       progressClick(e) {
-        const rect = this.$refs.progressBar.getBoundingClientRect()
+        const rect = this.$refs.progressBar.getBoundingClientRect() // rect is a DOMRect object with eight properties: left, top, right, bottom, x, y, width, height
         const offsetWidth = e.pageX - rect.left
         this._offset(offsetWidth)
         // 这里当我们点击 progressBtn 的时候，e.offsetX 获取不对
@@ -62,7 +61,7 @@
         this.$emit('percentChange', percent)
       },
       _offset(offsetWidth) {
-        this.$refs.progress.style.width = `${offsetWidth}px`
+        this.$refs.progress.style.width = `${offsetWidth}px`  // 黄色进度条调整
         this.$refs.progressBtn.style[transform] = `translate3d(${offsetWidth}px,0,0)`
       }
     },
