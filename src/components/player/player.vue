@@ -150,6 +150,39 @@
         'playing'
       ])
     },
+    watch: {
+      currentSong(newSong, oldSong) { // currentSong改变
+        if (!newSong.id) {
+          return
+        }
+        if (newSong.id === oldSong.id) {
+          return
+        }
+        if (this.currentLyric) {
+          this.currentLyric.stop()
+          this.currentTime = 0
+          this.playingLyric = ''
+          this.currentLineNum = 0
+        }
+        clearTimeout(this.timer) // 保证这里的逻辑只执行一次
+        this.timer = setTimeout(() => { // 延迟播放
+          this.$refs.audio.play()
+          this.getLyric()
+        }, 1000)
+      },
+      playing(newPlaying) {
+        const audio = this.$refs.audio
+        this.$nextTick(() => {
+          newPlaying ? audio.play() : audio.pause()
+        })
+      }
+    },
+    components: {
+      ProgressBar,
+      ProgressCircle,
+      Scroll,
+      Playlist
+    },
     created() {
       this.touch = {}
     },
@@ -288,14 +321,14 @@
           this.currentLyric.seek(currentTime * 1000)
         }
       },
-      getLyric() {
+      getLyric() { // 获取歌词
         this.currentSong.getLyric().then((lyric) => {
           if (this.currentSong.lyric !== lyric) {
             return
           }
-          this.currentLyric = new Lyric(lyric, this.handleLyric)
+          this.currentLyric = new Lyric(lyric, this.handleLyric)  // 歌词插件
           if (this.playing) {
-            this.currentLyric.play()
+            this.currentLyric.play() // handleLyric
           }
         }).catch(() => {
           this.currentLyric = null
@@ -336,9 +369,9 @@
         const offsetWidth = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
         this.touch.percent = Math.abs(offsetWidth / window.innerWidth)
         this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)`
-        this.$refs.lyricList.$el.style[transitionDuration] = 0
+        this.$refs.lyricList.$el.style[transitionDuration] = '0s'
         this.$refs.middleL.style.opacity = 1 - this.touch.percent
-        this.$refs.middleL.style[transitionDuration] = 0
+        this.$refs.middleL.style[transitionDuration] = '0s'
       },
       middleTouchEnd() {
         let offsetWidth
@@ -398,39 +431,6 @@
       ...mapActions([
         'savePlayHistory'
       ])
-    },
-    watch: {
-      currentSong(newSong, oldSong) {
-        if (!newSong.id) {
-          return
-        }
-        if (newSong.id === oldSong.id) {
-          return
-        }
-        if (this.currentLyric) {
-          this.currentLyric.stop()
-          this.currentTime = 0
-          this.playingLyric = ''
-          this.currentLineNum = 0
-        }
-        clearTimeout(this.timer)
-        this.timer = setTimeout(() => {
-          this.$refs.audio.play()
-          this.getLyric()
-        }, 1000)
-      },
-      playing(newPlaying) {
-        const audio = this.$refs.audio
-        this.$nextTick(() => {
-          newPlaying ? audio.play() : audio.pause()
-        })
-      }
-    },
-    components: {
-      ProgressBar,
-      ProgressCircle,
-      Scroll,
-      Playlist
     }
   }
 </script>

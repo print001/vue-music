@@ -31,7 +31,7 @@
         'singer'
       ])
     },
-    created() {
+    created() { // 根据singer 从服务器获取singer数据
       this._getDetail()
     },
     methods: {

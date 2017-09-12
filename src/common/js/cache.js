@@ -66,7 +66,7 @@ export function savePlay(song) {
   return songs
 }
 
-export function loadPlay() {
+export function loadPlay() { // 初始化playHistory
   return storage.get(PLAY_KEY, [])
 }
 

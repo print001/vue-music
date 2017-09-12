@@ -23,7 +23,7 @@ VUE --
 watch 数据：
   watch:{
   name(){
-  }
+     }
   }
    name 是要watch的对象，name()是回调函数 当name有改变时调用回调函数name(newval,oldval)中可以传入新旧参数
     在实例化时会调用watch

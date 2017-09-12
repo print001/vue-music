@@ -74,7 +74,7 @@
         this.$refs.confirm.show()
       },
       _getHotKey() {
-        getHotKey().then((res) => {
+        getHotKey().then((res) => { // 取10个热门
           if (res.code === ERR_OK) {
             this.hotKey = res.data.hotkey.slice(0, 10)
           }

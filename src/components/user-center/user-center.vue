@@ -96,7 +96,7 @@
           return
         }
         list = list.map((song) => {
-          return new Song(song)
+          return new Song(song) // 创建一个对象
         })
         this.randomPlay({
           list

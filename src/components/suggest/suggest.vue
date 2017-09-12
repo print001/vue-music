@@ -52,7 +52,7 @@
       return {
         page: 1,
         pullup: true, // 是否下拉到底加载
-        beforeScroll: true,
+        beforeScroll: true, // 在滚动开始前触发事件
         hasMore: true,
         result: []
       }
@@ -61,7 +61,7 @@
       refresh() {
         this.$refs.suggest.refresh()
       },
-      search() {
+      search() { // 从服务器加载数据
         this.page = 1
         this.hasMore = true
         this.$refs.suggest.scrollTo(0, 0)
@@ -98,7 +98,7 @@
           })
           this.setSinger(singer)
         } else {
-          this.insertSong(item)
+          this.insertSong(item) // actions
         }
         this.$emit('select', item) // 用于保存历史纪录
       },
@@ -119,7 +119,7 @@
       _genResult(data) {
         let ret = []
         if (data.zhida && data.zhida.singerid) {
-          ret.push({...data.zhida, ...{type: TYPE_SINGER}})
+          ret.push({...data.zhida, ...{type: TYPE_SINGER}}) // 扩展运算符（...）用于取出参数对象的所有可遍历属性，拷贝到当前对象之中
         }
         if (data.song) {
           ret = ret.concat(this._normalizeSongs(data.song.list))
@@ -130,7 +130,7 @@
         let ret = []
         list.forEach((musicData) => {
           if (musicData.songid && musicData.albummid) {
-            ret.push(createSong(musicData))
+            ret.push(createSong(musicData)) // createSong
           }
         })
         return ret
@@ -148,7 +148,7 @@
         'insertSong'
       ])
     },
-    watch: {
+    watch: { // 传入新query时重新加载内容
       query(newQuery) {
         this.search(newQuery)
       }
