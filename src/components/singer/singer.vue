@@ -4,7 +4,6 @@
     <router-view></router-view>
   </div>
 </template>
-
 <script type="text/ecmascript-6">
   import {getSingerList} from 'api/singer.js'
   import {ERR_OK} from 'api/config'
@@ -44,7 +43,6 @@
       _getSingerList() {  // 通过jsonp取得数据
         getSingerList().then((res) => {
           if (res.code === ERR_OK) {
-            // console.log(res.data.list)
             this.singers = this._normalizeSinger(res.data.list) // data.list是一个数组
           }
         })

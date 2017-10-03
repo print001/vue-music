@@ -29,7 +29,7 @@ apiRoutes.get('/getDiscList', function (req, res) {
       referer: 'c.y.qq.com',
       host: 'c.y.qq.com'
     },
-    params: req.query //访问getDiscList发送的请求
+    params: req.query //访问getDiscList api发送的请求
   }).then((response) => { //数据来自服务器返回
     res.json(response.data) //输出到浏览器
   }).catch((e) => {
@@ -46,7 +46,7 @@ apiRoutes.get('/lyric', function (req, res) {
       host: 'c.y.qq.com'
     },
     params: req.query
-  }).then((response) => {
+  }).then((response) => { // 这里的response是axios发送请求获得的数据
     var ret = response.data
     if (typeof ret === 'string') {
       var reg = /^\w+\(({[^()]+})\)$/

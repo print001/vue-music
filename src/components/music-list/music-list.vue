@@ -24,7 +24,6 @@
     </scroll>
   </div>
 </template>
-
 <script type="text/ecmascript-6">
   import Scroll from 'base/scroll/scroll'
   import songList from 'base/song-list/song-list'
@@ -98,7 +97,7 @@
         this.$refs.filter.style[backdrop] = `blur(${blur}px)`
         if (newY < this.minTranslateY) {
           zIndex = 10 // 此时让bgImage在顶层防止scroll遮盖
-          this.$refs.bgImage.style.paddingTop = 0  // paddtop 和height控制bg-image大小 此时缩小
+          this.$refs.bgImage.style.paddingTop = 0  // paddingtop 和height控制bg-image大小 此时缩小
           this.$refs.bgImage.style.height = `${RESERVED_HEIGHT}px`
           this.$refs.playBtn.style.display = 'NONE'
         } else {

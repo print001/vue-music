@@ -87,7 +87,7 @@
           return
         }
         this.fixedTop = fixedTop
-        this.$refs.fixed.style.transform = `translate3d(0,${fixedTop}px,0)` // 表
+        this.$refs.fixed.style.transform = `translate3d(0,${fixedTop}px,0)` // 负数
       }
     },
     components: {
@@ -112,8 +112,8 @@
         this.$emit('select', item) // item表示click选中的歌手的信息 触发父组件singer的select事件
       },
       onShortcutTouchStart(e) { // 实现点击index栏跳转
-        let anchorIndex = getData(e.target, 'index') // e.target 表示事件发生时 的目标对象
-        let firstTouch = e.touches[0] // se6的特性
+        let anchorIndex = getData(e.target, 'index') // e.target 表示事件发生时的目标对象
+        let firstTouch = e.touches[0] // es6的特性
         this.touch.y1 = firstTouch.pageY
         this.touch.anchorIndex = anchorIndex
         this._scrollTo(anchorIndex)

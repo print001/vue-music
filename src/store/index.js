@@ -1,4 +1,4 @@
-// 用来整合真个store 方法
+// 用来整合整个store 方法
 import Vue from 'vue'
 import Vuex from 'vuex'
 import * as actions from './actions'
